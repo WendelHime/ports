@@ -47,7 +47,12 @@ func (h *PortHandlers) GetPortByUnloc(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	w.Write(b)
+	_, err = w.Write(b)
+	if err != nil {
+		respondError(w, err)
+		return
+	}
+
 }
 
 func respondError(w http.ResponseWriter, err error) {
