@@ -9,6 +9,7 @@ import (
 	io "io"
 	reflect "reflect"
 
+	models "github.com/WendelHime/ports/internal/shared/models"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -33,6 +34,21 @@ func NewMockPortDomainService(ctrl *gomock.Controller) *MockPortDomainService {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockPortDomainService) EXPECT() *MockPortDomainServiceMockRecorder {
 	return m.recorder
+}
+
+// GetPort mocks base method.
+func (m *MockPortDomainService) GetPort(arg0 context.Context, arg1 string) (models.Port, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPort", arg0, arg1)
+	ret0, _ := ret[0].(models.Port)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetPort indicates an expected call of GetPort.
+func (mr *MockPortDomainServiceMockRecorder) GetPort(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPort", reflect.TypeOf((*MockPortDomainService)(nil).GetPort), arg0, arg1)
 }
 
 // SyncPorts mocks base method.

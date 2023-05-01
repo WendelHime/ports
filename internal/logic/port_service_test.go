@@ -134,6 +134,55 @@ func TestSyncPorts(t *testing.T) {
 	}
 }
 
+func TestGetPort(t *testing.T) {
+	ctx := context.Background()
+	var tests = []struct {
+		name       string
+		assert     func(t *testing.T, port models.Port, err error)
+		setup      func(t *testing.T) PortDomainService
+		givenUnloc string
+	}{
+		{
+			name: "get port with success should return no error",
+			assert: func(t *testing.T, port models.Port, err error) {
+				assert.Nil(t, err)
+				expectedPort := models.Port{Unlocs: []string{"UNLOC"}}
+				assert.Equal(t, expectedPort, port)
+			},
+			setup: func(t *testing.T) PortDomainService {
+				ctrl := gomock.NewController(t)
+				portRepo := storage.NewMockPortRepository(ctrl)
+				portRepo.EXPECT().Get(gomock.Any(), gomock.Any()).Return(models.Port{Unlocs: []string{"UNLOC"}}, nil).MaxTimes(1)
+
+				service := NewPortDomainService(portRepo)
+				return service
+			},
+			givenUnloc: "UNLOC",
+		},
+		{
+			name: "get port with invalid unloc should return bad request error",
+			assert: func(t *testing.T, _ models.Port, err error) {
+				assert.ErrorIs(t, err, localErrs.ErrBadRequest)
+			},
+			setup: func(t *testing.T) PortDomainService {
+				ctrl := gomock.NewController(t)
+				portRepo := storage.NewMockPortRepository(ctrl)
+
+				service := NewPortDomainService(portRepo)
+				return service
+			},
+			givenUnloc: "",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			service := tt.setup(t)
+			port, err := service.GetPort(ctx, tt.givenUnloc)
+			tt.assert(t, port, err)
+		})
+	}
+}
+
 func threeRandomPorts() string {
 	return `
 {

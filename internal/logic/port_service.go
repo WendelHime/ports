@@ -18,6 +18,7 @@ import (
 
 type PortDomainService interface {
 	SyncPorts(ctx context.Context, ports io.Reader) error
+	GetPort(ctx context.Context, unloc string) (models.Port, error)
 }
 
 type portLogic struct {
@@ -28,6 +29,14 @@ func NewPortDomainService(repo storage.PortRepository) PortDomainService {
 	return &portLogic{
 		repository: repo,
 	}
+}
+
+func (l portLogic) GetPort(ctx context.Context, unloc string) (models.Port, error) {
+	if unloc == "" {
+		return models.Port{}, errors.Wrap(localErrs.ErrBadRequest, "invalid unloc provided")
+	}
+	port, err := l.repository.Get(ctx, unloc)
+	return port, err
 }
 
 func (l portLogic) SyncPorts(ctx context.Context, ports io.Reader) error {
