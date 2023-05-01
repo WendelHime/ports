@@ -39,6 +39,8 @@ func (l portLogic) GetPort(ctx context.Context, unloc string) (models.Port, erro
 	return port, err
 }
 
+// SyncPorts validate and decode the provided ports input without loading
+// the entire input
 func (l portLogic) SyncPorts(ctx context.Context, ports io.Reader) error {
 	decoder := json.NewDecoder(ports)
 	portsIsEmpty := decoder.More()

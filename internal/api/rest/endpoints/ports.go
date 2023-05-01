@@ -1,3 +1,4 @@
+// Package endpoints holds all the REST HTTP endpoints implementations
 package endpoints
 
 import (
@@ -7,6 +8,7 @@ import (
 	localErrs "github.com/WendelHime/ports/internal/shared/errors"
 )
 
+// PortHTTP holds the logic service being used by the port endpoints
 type PortHTTP struct {
 	service logic.PortDomainService
 }
@@ -17,6 +19,7 @@ func NewPortHTTP(service logic.PortDomainService) *PortHTTP {
 	}
 }
 
+// SyncPorts is an upsert endpoint that insert/update ports data
 func (h *PortHTTP) SyncPorts(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	err := h.service.SyncPorts(r.Context(), r.Body)
@@ -27,6 +30,7 @@ func (h *PortHTTP) SyncPorts(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+// GetPortByUnloc retrieves the port data based on unloc provided parameter
 func (h *PortHTTP) GetPortByUnloc(w http.ResponseWriter, r *http.Request) {
 	panic("not implemented")
 }
