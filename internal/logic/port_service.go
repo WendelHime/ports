@@ -40,7 +40,7 @@ func (l portLogic) SyncPorts(ctx context.Context, ports io.Reader) error {
 	// getting first token "{"
 	_, err := decoder.Token()
 	if err != nil {
-		return errors.Wrap(localErrs.ErrInternalServerError, fmt.Sprintf("couldn't acquire first token from ports: %+v", err))
+		return errors.Wrap(localErrs.ErrBadRequest, fmt.Sprintf("couldn't acquire first token from input: %+v", err))
 	}
 
 	for decoder.More() {
