@@ -10,19 +10,19 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-// PortHTTP holds the logic service being used by the port endpoints
-type PortHTTP struct {
+// PortHandlers holds the logic service being used by the port endpoints
+type PortHandlers struct {
 	service logic.PortDomainService
 }
 
-func NewPortHTTP(service logic.PortDomainService) *PortHTTP {
-	return &PortHTTP{
+func NewPortHTTPHandlers(service logic.PortDomainService) *PortHandlers {
+	return &PortHandlers{
 		service: service,
 	}
 }
 
 // SyncPorts is an upsert endpoint that insert/update ports data
-func (h *PortHTTP) SyncPorts(w http.ResponseWriter, r *http.Request) {
+func (h *PortHandlers) SyncPorts(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	err := h.service.SyncPorts(r.Context(), r.Body)
 	if err != nil {
@@ -33,7 +33,7 @@ func (h *PortHTTP) SyncPorts(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetPortByUnloc retrieves the port data based on unloc provided parameter
-func (h *PortHTTP) GetPortByUnloc(w http.ResponseWriter, r *http.Request) {
+func (h *PortHandlers) GetPortByUnloc(w http.ResponseWriter, r *http.Request) {
 	unloc := chi.URLParam(r, "unloc")
 	port, err := h.service.GetPort(r.Context(), unloc)
 	if err != nil {

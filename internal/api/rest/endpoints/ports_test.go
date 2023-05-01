@@ -20,14 +20,14 @@ func TestSyncPorts(t *testing.T) {
 	var tests = []struct {
 		name   string
 		assert func(t *testing.T, w *httptest.ResponseRecorder)
-		setup  func(t *testing.T) (*PortHTTP, *http.Request, *httptest.ResponseRecorder)
+		setup  func(t *testing.T) (*PortHandlers, *http.Request, *httptest.ResponseRecorder)
 	}{
 		{
 			name: "Sync with success should return a ok response",
 			assert: func(t *testing.T, w *httptest.ResponseRecorder) {
 				assert.Equal(t, http.StatusOK, w.Code)
 			},
-			setup: func(t *testing.T) (*PortHTTP, *http.Request, *httptest.ResponseRecorder) {
+			setup: func(t *testing.T) (*PortHandlers, *http.Request, *httptest.ResponseRecorder) {
 				req := httptest.NewRequest(http.MethodPost, "/ports", nil)
 				w := httptest.NewRecorder()
 
@@ -35,7 +35,7 @@ func TestSyncPorts(t *testing.T) {
 				portService := logic.NewMockPortDomainService(ctrl)
 				portService.EXPECT().SyncPorts(req.Context(), gomock.Any()).Return(nil).Times(1)
 
-				portHTTP := NewPortHTTP(portService)
+				portHTTP := NewPortHTTPHandlers(portService)
 				return portHTTP, req, w
 			},
 		},
@@ -44,7 +44,7 @@ func TestSyncPorts(t *testing.T) {
 			assert: func(t *testing.T, w *httptest.ResponseRecorder) {
 				assert.Equal(t, http.StatusBadRequest, w.Code)
 			},
-			setup: func(t *testing.T) (*PortHTTP, *http.Request, *httptest.ResponseRecorder) {
+			setup: func(t *testing.T) (*PortHandlers, *http.Request, *httptest.ResponseRecorder) {
 				req := httptest.NewRequest(http.MethodPost, "/ports", nil)
 				w := httptest.NewRecorder()
 
@@ -52,7 +52,7 @@ func TestSyncPorts(t *testing.T) {
 				portService := logic.NewMockPortDomainService(ctrl)
 				portService.EXPECT().SyncPorts(req.Context(), gomock.Any()).Return(localErrs.ErrBadRequest).Times(1)
 
-				portHTTP := NewPortHTTP(portService)
+				portHTTP := NewPortHTTPHandlers(portService)
 				return portHTTP, req, w
 			},
 		},
@@ -61,7 +61,7 @@ func TestSyncPorts(t *testing.T) {
 			assert: func(t *testing.T, w *httptest.ResponseRecorder) {
 				assert.Equal(t, http.StatusInternalServerError, w.Code)
 			},
-			setup: func(t *testing.T) (*PortHTTP, *http.Request, *httptest.ResponseRecorder) {
+			setup: func(t *testing.T) (*PortHandlers, *http.Request, *httptest.ResponseRecorder) {
 				req := httptest.NewRequest(http.MethodPost, "/ports", nil)
 				w := httptest.NewRecorder()
 
@@ -69,7 +69,7 @@ func TestSyncPorts(t *testing.T) {
 				portService := logic.NewMockPortDomainService(ctrl)
 				portService.EXPECT().SyncPorts(req.Context(), gomock.Any()).Return(localErrs.ErrInternalServerError).Times(1)
 
-				portHTTP := NewPortHTTP(portService)
+				portHTTP := NewPortHTTPHandlers(portService)
 				return portHTTP, req, w
 			},
 		},
@@ -78,7 +78,7 @@ func TestSyncPorts(t *testing.T) {
 			assert: func(t *testing.T, w *httptest.ResponseRecorder) {
 				assert.Equal(t, http.StatusInternalServerError, w.Code)
 			},
-			setup: func(t *testing.T) (*PortHTTP, *http.Request, *httptest.ResponseRecorder) {
+			setup: func(t *testing.T) (*PortHandlers, *http.Request, *httptest.ResponseRecorder) {
 				req := httptest.NewRequest(http.MethodPost, "/ports", nil)
 				w := httptest.NewRecorder()
 
@@ -86,7 +86,7 @@ func TestSyncPorts(t *testing.T) {
 				portService := logic.NewMockPortDomainService(ctrl)
 				portService.EXPECT().SyncPorts(req.Context(), gomock.Any()).Return(errors.New("random error")).Times(1)
 
-				portHTTP := NewPortHTTP(portService)
+				portHTTP := NewPortHTTPHandlers(portService)
 				return portHTTP, req, w
 			},
 		},
@@ -104,7 +104,7 @@ func TestGetPortByUnloc(t *testing.T) {
 	var tests = []struct {
 		name   string
 		assert func(t *testing.T, w *httptest.ResponseRecorder)
-		setup  func(t *testing.T) (*PortHTTP, *http.Request, *httptest.ResponseRecorder)
+		setup  func(t *testing.T) (*PortHandlers, *http.Request, *httptest.ResponseRecorder)
 	}{
 		{
 			name: "Get port with success should return a ok response",
@@ -115,7 +115,7 @@ func TestGetPortByUnloc(t *testing.T) {
 				assert.Nil(t, err)
 				assert.Equal(t, models.Port{Unlocs: []string{"aaaa"}}, returnedPort)
 			},
-			setup: func(t *testing.T) (*PortHTTP, *http.Request, *httptest.ResponseRecorder) {
+			setup: func(t *testing.T) (*PortHandlers, *http.Request, *httptest.ResponseRecorder) {
 				req := httptest.NewRequest(http.MethodGet, "/ports/{unloc}", nil)
 				w := httptest.NewRecorder()
 
@@ -129,7 +129,7 @@ func TestGetPortByUnloc(t *testing.T) {
 					Unlocs: []string{"aaaa"},
 				}, nil).Times(1)
 
-				portHTTP := NewPortHTTP(portService)
+				portHTTP := NewPortHTTPHandlers(portService)
 				return portHTTP, req, w
 			},
 		},
@@ -138,7 +138,7 @@ func TestGetPortByUnloc(t *testing.T) {
 			assert: func(t *testing.T, w *httptest.ResponseRecorder) {
 				assert.Equal(t, http.StatusNotFound, w.Code)
 			},
-			setup: func(t *testing.T) (*PortHTTP, *http.Request, *httptest.ResponseRecorder) {
+			setup: func(t *testing.T) (*PortHandlers, *http.Request, *httptest.ResponseRecorder) {
 				req := httptest.NewRequest(http.MethodGet, "/ports/{unloc}", nil)
 				w := httptest.NewRecorder()
 
@@ -150,7 +150,7 @@ func TestGetPortByUnloc(t *testing.T) {
 				portService := logic.NewMockPortDomainService(ctrl)
 				portService.EXPECT().GetPort(req.Context(), "aaaa").Return(models.Port{}, localErrs.ErrNotFound).Times(1)
 
-				portHTTP := NewPortHTTP(portService)
+				portHTTP := NewPortHTTPHandlers(portService)
 				return portHTTP, req, w
 			},
 		},
