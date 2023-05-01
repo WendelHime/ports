@@ -1,6 +1,8 @@
 package endpoints
 
 import (
+	"context"
+	"encoding/json"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -8,6 +10,8 @@ import (
 
 	"github.com/WendelHime/ports/internal/logic"
 	localErrs "github.com/WendelHime/ports/internal/shared/errors"
+	"github.com/WendelHime/ports/internal/shared/models"
+	"github.com/go-chi/chi/v5"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
@@ -91,6 +95,70 @@ func TestSyncPorts(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			portHTTP, req, w := tt.setup(t)
 			portHTTP.SyncPorts(w, req)
+			tt.assert(t, w)
+		})
+	}
+}
+
+func TestGetPortByUnloc(t *testing.T) {
+	var tests = []struct {
+		name   string
+		assert func(t *testing.T, w *httptest.ResponseRecorder)
+		setup  func(t *testing.T) (*PortHTTP, *http.Request, *httptest.ResponseRecorder)
+	}{
+		{
+			name: "Get port with success should return a ok response",
+			assert: func(t *testing.T, w *httptest.ResponseRecorder) {
+				assert.Equal(t, http.StatusOK, w.Code)
+				returnedPort := models.Port{}
+				err := json.Unmarshal(w.Body.Bytes(), &returnedPort)
+				assert.Nil(t, err)
+				assert.Equal(t, models.Port{Unlocs: []string{"aaaa"}}, returnedPort)
+			},
+			setup: func(t *testing.T) (*PortHTTP, *http.Request, *httptest.ResponseRecorder) {
+				req := httptest.NewRequest(http.MethodGet, "/ports/{unloc}", nil)
+				w := httptest.NewRecorder()
+
+				rctx := chi.NewRouteContext()
+				rctx.URLParams.Add("unloc", "aaaa")
+				req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
+
+				ctrl := gomock.NewController(t)
+				portService := logic.NewMockPortDomainService(ctrl)
+				portService.EXPECT().GetPort(req.Context(), "aaaa").Return(models.Port{
+					Unlocs: []string{"aaaa"},
+				}, nil).Times(1)
+
+				portHTTP := NewPortHTTP(portService)
+				return portHTTP, req, w
+			},
+		},
+		{
+			name: "Port not found should return a not found error",
+			assert: func(t *testing.T, w *httptest.ResponseRecorder) {
+				assert.Equal(t, http.StatusNotFound, w.Code)
+			},
+			setup: func(t *testing.T) (*PortHTTP, *http.Request, *httptest.ResponseRecorder) {
+				req := httptest.NewRequest(http.MethodGet, "/ports/{unloc}", nil)
+				w := httptest.NewRecorder()
+
+				rctx := chi.NewRouteContext()
+				rctx.URLParams.Add("unloc", "aaaa")
+				req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
+
+				ctrl := gomock.NewController(t)
+				portService := logic.NewMockPortDomainService(ctrl)
+				portService.EXPECT().GetPort(req.Context(), "aaaa").Return(models.Port{}, localErrs.ErrNotFound).Times(1)
+
+				portHTTP := NewPortHTTP(portService)
+				return portHTTP, req, w
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			portHTTP, req, w := tt.setup(t)
+			portHTTP.GetPortByUnloc(w, req)
 			tt.assert(t, w)
 		})
 	}

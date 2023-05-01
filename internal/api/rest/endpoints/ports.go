@@ -2,10 +2,12 @@
 package endpoints
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/WendelHime/ports/internal/logic"
 	localErrs "github.com/WendelHime/ports/internal/shared/errors"
+	"github.com/go-chi/chi/v5"
 )
 
 // PortHTTP holds the logic service being used by the port endpoints
@@ -32,21 +34,35 @@ func (h *PortHTTP) SyncPorts(w http.ResponseWriter, r *http.Request) {
 
 // GetPortByUnloc retrieves the port data based on unloc provided parameter
 func (h *PortHTTP) GetPortByUnloc(w http.ResponseWriter, r *http.Request) {
-	panic("not implemented")
+	unloc := chi.URLParam(r, "unloc")
+	port, err := h.service.GetPort(r.Context(), unloc)
+	if err != nil {
+		respondError(w, err)
+		return
+	}
+
+	b, err := json.Marshal(port)
+	if err != nil {
+		respondError(w, err)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write(b)
 }
 
 func respondError(w http.ResponseWriter, err error) {
 	if err != nil {
+		var statusCode int
 		switch err {
 		case localErrs.ErrBadRequest:
-			w.WriteHeader(http.StatusBadRequest)
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			statusCode = http.StatusBadRequest
 		case localErrs.ErrInternalServerError:
-			w.WriteHeader(http.StatusInternalServerError)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			statusCode = http.StatusInternalServerError
+		case localErrs.ErrNotFound:
+			statusCode = http.StatusNotFound
 		default:
-			w.WriteHeader(http.StatusInternalServerError)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			statusCode = http.StatusInternalServerError
 		}
+		http.Error(w, err.Error(), statusCode)
 	}
 }
