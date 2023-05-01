@@ -2,10 +2,10 @@ generate:
 	go generate github.com/WendelHime/ports/...
 
 build:
-	docker build -t ports:latest .
+	docker-compose build
 
 run:
-	docker run --rm -it -p 8080:8080 -m 200m ports:latest
+	docker-compose up
 
 test:
 	go test -race github.com/WendelHime/ports/...
