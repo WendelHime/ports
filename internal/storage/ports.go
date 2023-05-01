@@ -5,6 +5,7 @@ package storage
 
 import (
 	"context"
+	"sync"
 
 	localErrs "github.com/WendelHime/ports/internal/shared/errors"
 	"github.com/WendelHime/ports/internal/shared/models"
@@ -19,15 +20,19 @@ type PortRepository interface {
 
 type portRepo struct {
 	ports map[string]models.Port
+	mutex *sync.Mutex
 }
 
 func NewPortRepository() PortRepository {
 	return &portRepo{
 		ports: make(map[string]models.Port),
+		mutex: new(sync.Mutex),
 	}
 }
 
 func (r *portRepo) Create(ctx context.Context, port models.Port) error {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
 	for _, unloc := range port.Unlocs {
 		r.ports[unloc] = port
 	}
@@ -35,6 +40,8 @@ func (r *portRepo) Create(ctx context.Context, port models.Port) error {
 }
 
 func (r *portRepo) Update(ctx context.Context, port models.Port) error {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
 	for _, unloc := range port.Unlocs {
 		r.ports[unloc] = port
 	}
@@ -42,6 +49,8 @@ func (r *portRepo) Update(ctx context.Context, port models.Port) error {
 }
 
 func (r *portRepo) Get(ctx context.Context, unloc string) (models.Port, error) {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
 	if port, exists := r.ports[unloc]; exists {
 		return port, nil
 	}

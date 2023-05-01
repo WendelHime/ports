@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"sync"
 	"testing"
 
 	"github.com/WendelHime/ports/internal/shared/models"
@@ -31,6 +32,7 @@ func TestInMemRepository(t *testing.T) {
 			setup: func(*testing.T) portRepo {
 				return portRepo{
 					ports: make(map[string]models.Port),
+					mutex: new(sync.Mutex),
 				}
 			},
 		},
@@ -50,6 +52,7 @@ func TestInMemRepository(t *testing.T) {
 			setup: func(*testing.T) portRepo {
 				repo := portRepo{
 					ports: make(map[string]models.Port),
+					mutex: new(sync.Mutex),
 				}
 				err := repo.Create(context.Background(), models.Port{
 					Unlocs: []string{"UNLOC"},
@@ -78,6 +81,7 @@ func TestInMemRepository(t *testing.T) {
 			setup: func(*testing.T) portRepo {
 				repo := portRepo{
 					ports: make(map[string]models.Port),
+					mutex: new(sync.Mutex),
 				}
 				err := repo.Create(context.Background(), models.Port{
 					Unlocs: []string{"UNLOC"},
